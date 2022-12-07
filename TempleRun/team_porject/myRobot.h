@@ -25,7 +25,7 @@ public:
 	glm::vec3 Pos = glm::vec3(0.0f, 0.0f, 0.0f); //--- 객체 위치
 	glm::vec3 Rot = glm::vec3(0.0f, 0.0f, 0.0f); //--- 기본 방향에서 얼마나 회전해 있는지
 	glm::vec3 Scale = glm::vec3(1.0f, 1.0f, 1.0f); //--- 신축률
-	KebordInput input;
+	KebordInput input{};
 	MyCamera Camera[2];
 
 	int face_dir = 0;
@@ -194,7 +194,7 @@ public:
 				current_jump_force = jump_force;
 			}
 		}
-		bool W_move, H_move;
+		bool W_move{}, H_move{}; 
 		if ((input.A_Down && !input.D_Down) || (!input.A_Down && input.D_Down))
 			W_move = true;
 		if ((input.W_Down && !input.S_Down) || (!input.W_Down && input.S_Down))

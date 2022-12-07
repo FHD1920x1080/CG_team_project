@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="objRead.cpp">
+      <Filter>소스파일</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>소스파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Box.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="map.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="myCamera.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="myRobot.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="objRead.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vertex.glsl">
+      <Filter>쉐이더파일</Filter>
+    </None>
+    <None Include="fragment.glsl">
+      <Filter>쉐이더파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="소스파일">
+      <UniqueIdentifier>{d60f1f53-7a75-43ff-ad5b-c388873e5545}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더파일">
+      <UniqueIdentifier>{f7054f18-98be-434b-8a51-e5b7e43e8013}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="쉐이더파일">
+      <UniqueIdentifier>{351f272d-4517-4596-9507-1de111894d8f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

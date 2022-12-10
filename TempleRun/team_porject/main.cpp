@@ -526,7 +526,6 @@ void KeyDown(unsigned char key, int x, int y)
 		userInput.Space_Down = true;
 		break;
 	}
-	glutPostRedisplay();
 }
 void KeyUp(unsigned char key, int x, int y) {
 	switch (key) {
@@ -550,7 +549,6 @@ void KeyUp(unsigned char key, int x, int y) {
 		userInput.Space_Down = false;
 		break;
 	}
-	glutPostRedisplay();
 }
 void Mouse(int button, int state, int x, int y) {
 	userInput.cursor_x = x;
@@ -578,7 +576,6 @@ void MouseDrag(int x, int y) {
 			myRobot.Camera[0].Rot.x = 85;
 		if (myRobot.Camera[0].Rot.x < -85)
 			myRobot.Camera[0].Rot.x = -85;
-		glutPostRedisplay();
 	}
 }
 
@@ -591,15 +588,9 @@ void map_move() {
 }
 
 void FPS100(int value) {
-	anim_play();
-	
 	myRobot.update();
-
-	if (myRobot.Pos.y < 0) {//¹Ù´Ú¸é
-		myRobot.Pos.y = 0.0;
-		myRobot.cur_fall_speed = 0.00;
-	}
 	glutPostRedisplay();
+	anim_play();
 	glutTimerFunc(10, FPS100, 1);
 }
 

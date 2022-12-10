@@ -40,7 +40,7 @@ public:
 	float cur_fall_speed = 0.0;
 	float gravity_accel = 0.01;
 
-	float walk_speed = 0.2;
+	float walk_speed = 0.25;
 
 	int leg_rot_dir = 1;
 	bool jump_state = false;
@@ -95,7 +95,7 @@ public:
 		Scale = glm::vec3(1.0f, 1.0f, 1.0f); //--- 신축률
 		Camera[0].Pos = glm::vec4(Pos.x, Pos.y + 3.4, Pos.z, 1.0f);
 		Camera[0].Dir = glm::vec4(Camera[0].Pos.x, Camera[0].Pos.y, Camera[0].Pos.z + 1, 1.0f); //--- 카메라가 바라보는 방향
-		Camera[1].Pos = glm::vec4(Pos.x, Camera[0].Pos.y, Pos.z - 10, 1.0f);
+		Camera[1].Pos = glm::vec4(Pos.x, Camera[0].Pos.y, Pos.z - 20, 1.0f);
 		Camera[1].Dir = glm::vec4(Camera[0].Pos.x, Camera[0].Pos.y, Camera[0].Pos.z, 1.0f); //--- 카메라가 바라보는 방향
 	}
 	void show(unsigned int* modelLocation) {
@@ -191,7 +191,7 @@ public:
 		CT = glm::mat4(1.0f);
 		
 		CT = glm::translate(CT, glm::vec3(Pos.x, Pos.y, Pos.z));
-		sample = glm::vec4(0.0, 3.4, - 10, 1.0f);//카메라1 디폴트값
+		sample = glm::vec4(0.0, 3.4, - 20, 1.0f);//카메라1 디폴트값
 		Camera[1].Pos = CT * CR_y * CR_x * sample;
 		Camera[1].Dir = Camera[0].Pos; //--- 카메라가 바라보는 방향
 	}
@@ -289,10 +289,10 @@ public:
 	}
 
 	void walk() {
-		rightLeg.Rot.x += 2 * leg_rot_dir;
-		leftLeg.Rot.x -= 2 * leg_rot_dir;
-		leftArm.Rot.x += 2 * leg_rot_dir;
-		rightArm.Rot.x -= 2 * leg_rot_dir;
+		rightLeg.Rot.x += 3 * leg_rot_dir;
+		leftLeg.Rot.x -= 3 * leg_rot_dir;
+		leftArm.Rot.x += 3 * leg_rot_dir;
+		rightArm.Rot.x -= 3 * leg_rot_dir;
 		if (rightLeg.Rot.x >= 30 ||rightLeg.Rot.x <= -30)
 			leg_rot_dir *= -1;
 	}
@@ -302,6 +302,10 @@ public:
 		cur_fall_speed += gravity_accel;
 		if (cur_fall_speed > max_fall_speed)
 			cur_fall_speed = max_fall_speed;
+		if (Pos.y < 0) {//바닥면
+			Pos.y = 0.0;
+			cur_fall_speed = 0.00;
+		}
 	}
 
 	void jump() {

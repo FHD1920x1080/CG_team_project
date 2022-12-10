@@ -1,7 +1,8 @@
 #pragma once
 #include "stdafx.h"
-#include "Box.h"
+#include "Object.h"
 #include "myCamera.h"
+#include "userInput.h"
 
 class KebordInput {
 public:
@@ -25,8 +26,10 @@ public:
 	glm::vec3 Pos = glm::vec3(0.0f, 0.0f, 0.0f); //--- 객체 위치
 	glm::vec3 Rot = glm::vec3(0.0f, 0.0f, 0.0f); //--- 기본 방향에서 얼마나 회전해 있는지
 	glm::vec3 Scale = glm::vec3(1.0f, 1.0f, 1.0f); //--- 신축률
-	KebordInput input;
-	MyCamera Camera[2];
+	//KebordInput userInput;
+	MyCamera Camera[2];//0번이 1인칭
+	float rot_face_h = 0.0;
+	float rot_face_w = 0.0;
 
 	int face_dir = 0;
 
@@ -39,7 +42,7 @@ public:
 	int leg_rot_dir = 1;
 	bool jump_state = false;
 
-	Box box[parts_total];
+	Object box[parts_total];
 	GLuint VAO[parts_total];
 	GLuint VBO_position[parts_total];
 	GLuint VBO_normal[parts_total];
@@ -47,13 +50,18 @@ public:
 
 
 	void init() {
-		body.loadObj_normalize_center("body.obj");
-		head.loadObj_normalize_center("head.obj");
-		rightLeg.loadObj_normalize_center("stik.obj");
-		leftLeg.loadObj_normalize_center("stik.obj");
-		rightArm.loadObj_normalize_center("stik.obj");
-		leftArm.loadObj_normalize_center("stik.obj");
-
+		objRead a;
+		a.loadObj_normalize_center("cube_ground.obj");
+		for (int i = 0; i < parts_total; i++) {
+			box[i].init(a);
+			box[i].rand_init_color();
+		}
+		rightLeg.Scale = glm::vec3(0.2, 1.2, 0.2);
+		leftLeg.Scale = glm::vec3(0.2, 1.2, 0.2);
+		rightArm.Scale = glm::vec3(0.2, 1.2, 0.2);
+		leftArm.Scale = glm::vec3(0.2, 1.2, 0.2);
+		body.Scale = glm::vec3(1.0, 1.5, 1.0);
+		head.Scale = glm::vec3(0.7, 0.7, 0.7);
 		reset();
 
 	}
@@ -65,21 +73,18 @@ public:
 			box[i].Rot.x = 0.0;
 			box[i].Rot.y = 0.0;
 			box[i].Rot.z = 0.0;
-			box[i].Scale.x = 1.0;
-			box[i].Scale.y = 1.0;
-			box[i].Scale.z = 1.0;
 		}
-		body.Pos.y = rightLeg.scaleY;
-		head.Pos.y = body.Pos.y + body.scaleY;
+		body.Pos.y = rightLeg.Scale.y;
+		head.Pos.y = body.Pos.y + body.Scale.y;
 
-		rightLeg.Pos.x = +rightLeg.scaleX;
-		leftLeg.Pos.x = -leftLeg.scaleX;
+		rightLeg.Pos.x = +rightLeg.Scale.x;
+		leftLeg.Pos.x = -leftLeg.Scale.x;
 
-		rightArm.Pos.y = body.Pos.y + body.scaleY;
-		rightArm.Pos.x = (body.scaleX / 2 + rightArm.scaleX / 2);
+		rightArm.Pos.y = body.Pos.y + body.Scale.y;
+		rightArm.Pos.x = (body.Scale.x / 2 + rightArm.Scale.x / 2);
 
-		leftArm.Pos.y = body.Pos.y + body.scaleY;
-		leftArm.Pos.x = -(body.scaleX / 2 + leftArm.scaleX / 2);
+		leftArm.Pos.y = body.Pos.y + body.Scale.y;
+		leftArm.Pos.x = -(body.Scale.x / 2 + leftArm.Scale.x / 2);
 		rightArm.Rot.z = -15;
 		leftArm.Rot.z = 15;
 		Pos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -90,7 +95,7 @@ public:
 		Camera[0].Pos.y = Pos.y + 3.4;
 		Camera[0].Dir = glm::vec4(Camera[0].Pos.x, Camera[0].Pos.y, Camera[0].Pos.z + 1, 1.0f); //--- 카메라가 바라보는 방향
 	}
-	void show(unsigned int* modelLocation, glm::mat4 WC = glm::mat4(1.0f)) {
+	void show(unsigned int* modelLocation) {
 		//glBindVertexArray(VAO[0]);
 		for (int i = 0; i < 2; i++) {
 			glBindVertexArray(VAO[i]);
@@ -113,9 +118,9 @@ public:
 			glm::mat4 R_Dir = glm::mat4(1.0f);
 			glm::mat4 T_Pos = glm::mat4(1.0f);
 			glm::mat4 Convert = glm::mat4(1.0f);//변환행렬 초기화
-			tr1 = glm::translate(tr1, glm::vec3(0.0, -box[i].scaleY, 0.0));
+			tr1 = glm::translate(tr1, glm::vec3(0.0, -box[i].Scale.y, 0.0));
 			R_leg = glm::rotate(R_leg, glm::radians(box[i].Rot.x), glm::vec3(1.0, 0.0, 0.0));
-			tr2 = glm::translate(tr2, glm::vec3(0.0, box[i].scaleY, 0.0));
+			tr2 = glm::translate(tr2, glm::vec3(0.0, box[i].Scale.y, 0.0));
 			Init = glm::translate(Init, glm::vec3(box[i].Pos.x, box[i].Pos.y, box[i].Pos.z));
 			R_Dir = glm::rotate(R_Dir, glm::radians(Rot.y), glm::vec3(0.0, 1.0, 0.0));
 			T_Pos = glm::translate(T_Pos, glm::vec3(Pos.x, Pos.y, Pos.z));
@@ -188,16 +193,16 @@ public:
 	}
 
 	void move() {
-		if (input.Space_Down) {
+		if (userInput.Space_Down) {
 			if (jump_state == false) {
 				jump_state = true;
 				current_jump_force = jump_force;
 			}
 		}
-		bool W_move, H_move;
-		if ((input.A_Down && !input.D_Down) || (!input.A_Down && input.D_Down))
+		bool W_move{}, H_move{};
+		if ((userInput.A_Down && !userInput.D_Down) || (!userInput.A_Down && userInput.D_Down))
 			W_move = true;
-		if ((input.W_Down && !input.S_Down) || (!input.W_Down && input.S_Down))
+		if ((userInput.W_Down && !userInput.S_Down) || (!userInput.W_Down && userInput.S_Down))
 			H_move = true;
 		if (!W_move && !H_move)
 			return;
@@ -207,12 +212,12 @@ public:
 
 		bool left = 0, right = 0, front = 0, back = 0;
 		if (W_move)
-			if (input.A_Down)
+			if (userInput.A_Down)
 				left = true;
 			else
 				right = true;
 		if (H_move)
-			if (input.W_Down)
+			if (userInput.W_Down)
 				front = true;
 			else
 				back = true;
@@ -314,7 +319,7 @@ public:
 		return Pos.z + 0.3;
 	}
 	float top() {
-		return Pos.y + head.Pos.y + head.scaleY;
+		return Pos.y + head.Pos.y + head.Scale.y;
 	}
 	float bottom() {
 		return Pos.y;

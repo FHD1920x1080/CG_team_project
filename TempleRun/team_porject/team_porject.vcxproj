@@ -138,12 +138,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myCamera.h" />
-    <ClInclude Include="Box.h" />
     <ClInclude Include="myRobot.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="objRead.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="userInput.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

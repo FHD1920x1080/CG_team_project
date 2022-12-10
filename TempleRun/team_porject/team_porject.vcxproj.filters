@@ -12,9 +12,6 @@
     <ClInclude Include="stdafx.h">
       <Filter>헤더파일</Filter>
     </ClInclude>
-    <ClInclude Include="Box.h">
-      <Filter>헤더파일</Filter>
-    </ClInclude>
     <ClInclude Include="map.h">
       <Filter>헤더파일</Filter>
     </ClInclude>
@@ -28,6 +25,12 @@
       <Filter>헤더파일</Filter>
     </ClInclude>
     <ClInclude Include="shader.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="userInput.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
       <Filter>헤더파일</Filter>
     </ClInclude>
   </ItemGroup>

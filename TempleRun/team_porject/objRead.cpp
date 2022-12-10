@@ -1,5 +1,6 @@
 #include "objRead.h"
 
+
 int objRead::loadObj_normalize_center(const char* filename)
 {
 	FILE* objFile;
@@ -105,6 +106,6 @@ int objRead::loadObj_normalize_center(const char* filename)
 		glm::vec3 vertex = temp_normals[normalIndex - 1];
 		outnormal.push_back(vertex);
 	}
-
-	return outvertex.size();
+	vertex_size = outvertex.size();
+	return vertex_size;
 }

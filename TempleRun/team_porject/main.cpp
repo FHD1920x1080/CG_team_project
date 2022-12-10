@@ -1,8 +1,8 @@
 // Reading Obj file
 #include "stdafx.h"
 #include "shader.h"
-#include "Box.h"
 #include "myRobot.h"
+#include "userInput.h"
 #include <time.h>
 
 using namespace std;
@@ -14,15 +14,7 @@ GLuint VBO_position[4];
 GLuint VBO_normal[4];
 GLuint VBO_color[4];
 
-Box originBox;
-//bool mazeMap[max_h][max_w];
-//Box maze3D.Map[max_h][max_w];
 MyRobot myRobot;
-//int maze3D.h = 15;
-//int maze3D.w = 15;
-//GLuint VAO[25][25];
-//GLuint VBO_position[25][25];
-//GLuint VBO_color[25][25];
 
 void drawScene();
 void Reshape(int w, int h);
@@ -32,26 +24,16 @@ void Mouse(int button, int state, int x, int y);
 void MousePassiveDrag(int x, int y);
 void MouseDrag(int x, int y);
 void InitBuffer();
-void inputColor(Box* Obj);
 void enter();
 void reset();
 void FPS100(int value);
-void gravity(int value);
-float* cheak_collision(float x, float y, float z, Box Rect);
-bool check_collision_min_move(MyRobot* unit1, Box* unit2);
+float* cheak_collision(float x, float y, float z, Object Rect);
+bool check_collision_min_move(MyRobot* unit1, Object* unit2);
 //--- load obj related variabales
 //objRead objReader;
 //GLint Object = objReader.loadObj_normalize_center("mid_box.obj");
 
-class UserInput {
-public:
-	bool left_down = false;
-	bool A_Down, S_Down, W_Down, D_Down, Space_Down;
-	float cursor_x = 0.0, cursor_y = 0.0;
-	float cursor_x1 = 0.0, cursor_y1 = 0.0;
-	float cursor_x2 = 0.0, cursor_y2 = 0.0;
-};
-UserInput userInput;
+
 
 struct remote_control {
 	bool depth_test = true;
@@ -61,8 +43,6 @@ struct remote_control {
 };
 
 remote_control remocon;
-
-int face_dir;
 float fall_speed = 0;
 float gravity_force = 0.2;
 MyCamera myCamera[2];
@@ -163,12 +143,12 @@ GLfloat center_vColor[6][3] = {
 GLuint floor_vao, floor_vbo_pos, floor_vbo_color;
 
 GLfloat floor_vPos[6][3] = {
-	-10.0, -0.001, -10.0,
-	-10.0, -0.001, 10.0,
-	10.0, -0.001, -10.0,
-	10.0, -0.001, -10.0,
-	-10.0, -0.001, 10.0,
-	10.0, -0.001, 10.0
+	-3.0, -0.001, -3.0,
+	-3.0, -0.001, 3.0,
+	3.0, -0.001, -3.0,
+	3.0, -0.001, -3.0,
+	-3.0, -0.001, 3.0,
+	3.0, -0.001, 3.0
 };
 
 GLfloat floor_vColor[6][3] = {
@@ -180,14 +160,11 @@ GLfloat floor_vColor[6][3] = {
 	0.3, 0.5, 0.3
 };
 
-GLuint stone_vao, stone_vbo_pos, stone_vbo_color;
-Box stone;
-
-GLuint room_vao, room_vbo_pos, room_vbo_color;
-Box room;
 
 void InitBuffer()
 {
+	GLint pAttribute = glGetAttribLocation(s_program[0], "vPos");
+	GLint cAttribute = glGetAttribLocation(s_program[0], "in_Color");
 	//// 5.1. VAO 객체 생성 및 바인딩
 	glGenVertexArrays(1, &center_vao);
 	glGenBuffers(1, &center_vbo_pos);
@@ -222,24 +199,20 @@ void InitBuffer()
 	glGenVertexArrays(1, VAO);
 	glGenBuffers(1, VBO_position);
 	glGenBuffers(1, VBO_color);
-	GLint pAttribute;
-	GLint cAttribute;
 	glBindVertexArray(VAO[0]);
 	//---위치속성
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_position[0]);
-	glBufferData(GL_ARRAY_BUFFER, originBox.outvertex.size() * sizeof(glm::vec3), &originBox.outvertex[0], GL_STATIC_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO_position[0]);
+	//glBufferData(GL_ARRAY_BUFFER, originBox.outvertex.size() * sizeof(glm::vec3), &originBox.outvertex[0], GL_STATIC_DRAW);
 
-	pAttribute = glGetAttribLocation(s_program[0], "vPos");
-	glVertexAttribPointer(pAttribute, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(pAttribute);
+	//glVertexAttribPointer(pAttribute, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	//glEnableVertexAttribArray(pAttribute);
 
-	//---색상속성
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_color[0]);
-	glBufferData(GL_ARRAY_BUFFER, originBox.outvertex.size() * sizeof(glm::vec3), &originBox.outcolor[0], GL_STATIC_DRAW);
+	////---색상속성
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO_color[0]);
+	//glBufferData(GL_ARRAY_BUFFER, originBox.outvertex.size() * sizeof(glm::vec3), &originBox.outcolor[0], GL_STATIC_DRAW);
 
-	cAttribute = glGetAttribLocation(s_program[0], "in_Color");
-	glVertexAttribPointer(cAttribute, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(cAttribute);
+	//glVertexAttribPointer(cAttribute, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	//glEnableVertexAttribArray(cAttribute);
 
 	myRobot.initBuffer(s_program[0]);
 
@@ -586,8 +559,6 @@ void KeyUp(unsigned char key, int x, int y) {
 	}
 	glutPostRedisplay();
 }
-float rot_face_y = 0.0;
-float rot_face_x = 0.0;
 void Mouse(int button, int state, int x, int y) {
 	userInput.cursor_x = x;
 	userInput.cursor_y = y;
@@ -596,8 +567,8 @@ void Mouse(int button, int state, int x, int y) {
 		userInput.left_down = true;
 		userInput.cursor_x1 = userInput.cursor_x;
 		userInput.cursor_y1 = userInput.cursor_y;
-		rot_face_y = myRobot.Rot.y;
-		rot_face_x = myRobot.Camera[0].Rot.x;
+		myRobot.rot_face_h = myRobot.Rot.y;
+		myRobot.rot_face_w = myRobot.Camera[0].Rot.x;
 	}
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
 		userInput.left_down = false;
@@ -611,8 +582,8 @@ void MouseDrag(int x, int y) {
 	if (userInput.left_down) {
 		userInput.cursor_x2 = x;
 		userInput.cursor_y2 = y;
-		myRobot.Rot.y = rot_face_y + (userInput.cursor_x2 - userInput.cursor_x1) * 0.2;
-		myRobot.Camera[0].Rot.x = rot_face_x + (userInput.cursor_y2 - userInput.cursor_y1) * 0.2;
+		myRobot.Rot.y = myRobot.rot_face_h + (userInput.cursor_x2 - userInput.cursor_x1) * 0.2;
+		myRobot.Camera[0].Rot.x = myRobot.rot_face_w + (userInput.cursor_y2 - userInput.cursor_y1) * 0.2;
 		if (myRobot.Camera[0].Rot.x > 85)
 			myRobot.Camera[0].Rot.x = 85;
 		if (myRobot.Camera[0].Rot.x < -85)
@@ -645,23 +616,13 @@ void FPS100(int value) {
 	int input_x, input_y;
 void enter() {
 	srand((unsigned int)time(NULL));
-	originBox.loadObj_normalize_center("1x1cube.obj");
-	inputColor(&originBox);
 	double max = 32767;
 	myRobot.init();
-	for (int i = 0; i < myRobot.parts; i++) {
-		myRobot.box[i].update();
-		inputColor(&myRobot.box[i]);
-	}
-
 
 	myCamera[0].Pos = glm::vec4(0.0f, 80.0f, -40.0f, 1.0f); //--- 카메라 위치
 	myCamera[0].Dir = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); //--- 카메라가 바라보는 점
 	myCamera[0].Rot = glm::vec3(0.0f, 0.0f, 0.0f); //--- 회전 각도
 
-	myCamera[1].Pos = glm::vec4(0.0f, 60.0f, -0.001f, 1.0f); //--- 카메라 위치
-	myCamera[1].Dir = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); //--- 카메라가 바라보는 점
-	myCamera[1].Rot = glm::vec3(0.0f, 0.0f, 0.0f);
 	remote_control remocon_sample;
 	remocon = remocon_sample;
 	MyMode Anim_sample;
@@ -675,36 +636,14 @@ void reset() {
 	myCamera[0].Dir = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); //--- 카메라가 바라보는 점
 	myCamera[0].Rot = glm::vec3(0.0f, 0.0f, 0.0f); //--- 회전 각도
 	
-	myCamera[1].Pos = glm::vec4(0.0f, 60.0f, -0.001f, 1.0f); //--- 카메라 위치
-	myCamera[1].Dir = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); //--- 카메라가 바라보는 점
-	myCamera[1].Rot = glm::vec3(0.0f, 0.0f, 0.0f);
 	remote_control remocon_sample;
 	remocon = remocon_sample;
 	MyMode Anim_sample;
 	Anim = Anim_sample;
 }
 
-void inputColor(Box* Obj) {
-	
-	glm::vec3 input;
-	double max = 32767;
-	input[0] = rand() / max;
-	input[1] = rand() / max;
-	input[2] = rand() / max;
-	input[0] += 0.6;
-	if (input[0] > 1.0)
-		input[0] = 1.0;
-	int size = Obj->vertexIndices.size();
-	for (int i = 0; i < 6; i++) {
-		for (int j = 0; j < 6; j++) {
-			Obj->outcolor.push_back(input);
-		}
-		input[0] -= 0.1;
-	}
 
-}
-
-float* cheak_collision(float x, float y, float z, Box Box) {
+float* cheak_collision(float x, float y, float z, Object Box) {
 	float vec[3] = { 0.0, 0.0, 0.0 };
 	//printf("%f %f %f %f %f %f\n", Box.left(), Box.right(), Box.back(), Box.front(), Box.top(), Box.bottom());
 	if (x + 0.1 > Box.left() && x - 0.1 < Box.right() && z + 0.1 > Box.back() && z - 0.1 < Box.front() && y >= Box.bottom() && y < Box.top()) {
@@ -754,7 +693,7 @@ float* cheak_collision(float x, float y, float z, Box Box) {
 }
 
 
-bool check_collision_min_move(MyRobot* unit1, Box* unit2) { // unit1이 움직인놈
+bool check_collision_min_move(MyRobot* unit1, Object* unit2) { // unit1이 움직인놈
 	float left = unit1->left() - unit2->right();
 	if (left > 0)
 		return false;

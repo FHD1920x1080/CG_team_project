@@ -17,6 +17,6 @@ public:
 	float maxX = 0.0, maxY = 0.0, maxZ = 0.0;
 	float scaleAll;
 
-
+	int vertex_size = 0;
 	int loadObj_normalize_center(const char* filename);
 };

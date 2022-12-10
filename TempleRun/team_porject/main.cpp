@@ -29,11 +29,6 @@ void reset();
 void FPS100(int value);
 float* cheak_collision(float x, float y, float z, Object Rect);
 bool check_collision_min_move(MyRobot* unit1, Object* unit2);
-//--- load obj related variabales
-//objRead objReader;
-//GLint Object = objReader.loadObj_normalize_center("mid_box.obj");
-
-
 
 struct remote_control {
 	bool depth_test = true;
@@ -47,8 +42,6 @@ float fall_speed = 0;
 float gravity_force = 0.2;
 MyCamera myCamera[2];
 
-//GLint Object = objReader.loadObj_normalize_center("pyra.obj");
-//int Poly = 0;
 
 typedef struct MyMode {
 	bool updown_anim = 0;
@@ -84,9 +77,6 @@ int main(int argc, char** argv)
 		std::cout << "GLEW OK\n";
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////
-	//// Create shader program an register the shader
-	//////////////////////////////////////////////////////////////////////////////////////
 
 	GLuint vShader[4];
 	GLuint fShader[4];
@@ -111,9 +101,7 @@ int main(int argc, char** argv)
 	glutKeyboardUpFunc(KeyUp);
 	glutMouseFunc(Mouse);
 	glutMotionFunc(MouseDrag);
-	//glutTimerFunc(10, gravity, 1);
 	glutTimerFunc(10, FPS100, 1);
-	//glutTimerFunc(10, anim_1, 1);
 	// freeglut 윈도우 이벤트 처리 시작. 윈도우가 닫힐때까지 후한루프 실행.
 	glutMainLoop();
 
@@ -159,7 +147,6 @@ GLfloat floor_vColor[6][3] = {
 	0.3, 0.5, 0.3,
 	0.3, 0.5, 0.3
 };
-
 
 void InitBuffer()
 {

@@ -572,10 +572,10 @@ void MouseDrag(int x, int y) {
 		userInput.cursor_y2 = y;
 		myRobot.Rot.y = myRobot.rot_face_h + (userInput.cursor_x2 - userInput.cursor_x1) * 0.2;
 		myRobot.Camera[0].Rot.x = myRobot.rot_face_w + (userInput.cursor_y2 - userInput.cursor_y1) * 0.2;
-		if (myRobot.Camera[0].Rot.x > 85)
-			myRobot.Camera[0].Rot.x = 85;
-		if (myRobot.Camera[0].Rot.x < -85)
-			myRobot.Camera[0].Rot.x = -85;
+		if (myRobot.Camera[0].Rot.x > 79)
+			myRobot.Camera[0].Rot.x = 79;
+		else if (myRobot.Camera[0].Rot.x < -99)
+			myRobot.Camera[0].Rot.x = -99;
 	}
 }
 

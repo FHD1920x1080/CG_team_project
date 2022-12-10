@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="objRead.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="road_generator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.glsl" />
@@ -141,6 +142,7 @@
     <ClInclude Include="myRobot.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="objRead.h" />
+    <ClInclude Include="road_generator.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="map.h" />

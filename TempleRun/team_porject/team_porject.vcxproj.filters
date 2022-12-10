@@ -7,6 +7,9 @@
     <ClCompile Include="main.cpp">
       <Filter>소스파일</Filter>
     </ClCompile>
+    <ClCompile Include="road_generator.cpp">
+      <Filter>소스파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -31,6 +34,9 @@
       <Filter>헤더파일</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
+      <Filter>헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="road_generator.h">
       <Filter>헤더파일</Filter>
     </ClInclude>
   </ItemGroup>

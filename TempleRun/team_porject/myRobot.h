@@ -14,6 +14,9 @@ class MyRobot {
 	int East = 1;
 	int South = 2;
 	int West = 3;
+	int Run = 0;
+	int Jump = 1;
+	int Sliding = 2;
 #define parts_total 6
 #define body box[0]
 #define head box[1]
@@ -32,19 +35,19 @@ public:
 	float rot_face_h = 0.0;
 	float rot_face_w = 0.0;
 
-	int face_dir = 0;
+	int face_dir = 0;//바라보는 방향
 
 	float max_up_speed = 0.5;
 	float cur_up_speed = 0.0;
 	float max_fall_speed = 0.5;
 	float cur_fall_speed = 0.0;
 	float gravity_accel = 0.01;
-
-	float walk_speed = 0.25;
+	float walk_speed = 0.25;//걷는속도
+	int max_sliding_time = 100;//슬라이딩 지속시간
+	int cur_sliding_time = 0;//남은 지속시간
 
 	int leg_rot_dir = 1;
-	bool jump_state = false;
-
+	int cur_state = 0;
 	Object box[parts_total];
 	GLuint VAO[parts_total];
 	GLuint VBO_position[parts_total];
@@ -100,6 +103,9 @@ public:
 	}
 	void show(unsigned int* modelLocation) {
 		//glBindVertexArray(VAO[0]);
+		glm::mat4 R_Sliding = glm::mat4(1.0f);
+		if (cur_state == Sliding)
+			R_Sliding = glm::rotate(R_Sliding, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
 		for (int i = 0; i < 2; i++) {
 			glBindVertexArray(VAO[i]);
 			glm::mat4 Init = glm::mat4(1.0f);
@@ -109,7 +115,7 @@ public:
 			Init = glm::translate(Init, glm::vec3(box[i].Pos.x, box[i].Pos.y, box[i].Pos.z));
 			R_Dir = glm::rotate(R_Dir, glm::radians(Rot.y), glm::vec3(0.0, 1.0, 0.0));
 			T_Pos = glm::translate(T_Pos, glm::vec3(Pos.x, Pos.y, Pos.z));
-			Convert = T_Pos * R_Dir * Init;
+			Convert = T_Pos * R_Dir * R_Sliding * Init;
 			box[i].show(modelLocation, Convert);
 		}
 		for (int i = 2; i < 4; i++) {
@@ -127,7 +133,7 @@ public:
 			Init = glm::translate(Init, glm::vec3(box[i].Pos.x, box[i].Pos.y, box[i].Pos.z));
 			R_Dir = glm::rotate(R_Dir, glm::radians(Rot.y), glm::vec3(0.0, 1.0, 0.0));
 			T_Pos = glm::translate(T_Pos, glm::vec3(Pos.x, Pos.y, Pos.z));
-			Convert = T_Pos * R_Dir * Init * tr2 * R_leg * tr1;
+			Convert = T_Pos * R_Dir * R_Sliding * Init * tr2 * R_leg * tr1;
 			box[i].show(modelLocation, Convert);
 		}
 		for (int i = 4; i < 6; i++) {
@@ -143,7 +149,7 @@ public:
 			Init = glm::translate(Init, glm::vec3(box[i].Pos.x, box[i].Pos.y, box[i].Pos.z));
 			R_Dir = glm::rotate(R_Dir, glm::radians(Rot.y), glm::vec3(0.0, 1.0, 0.0));
 			T_Pos = glm::translate(T_Pos, glm::vec3(Pos.x, Pos.y, Pos.z));
-			Convert = T_Pos * R_Dir * Init * R_Arm * rot1;
+			Convert = T_Pos * R_Dir * R_Sliding * Init * R_Arm * rot1;
 			box[i].show(modelLocation, Convert);
 		}
 	}
@@ -198,9 +204,16 @@ public:
 
 	void move() {
 		if (userInput.Space_Down) {
-			if (jump_state == false) {
-				jump_state = true;
+			if (cur_state == Run) {
+				cur_fall_speed = 0.0;
+				cur_state = Jump;
 				cur_up_speed = max_up_speed;
+			}
+		}
+		if (userInput.C_Down) {
+			if (cur_state == Run) {
+				cur_state = Sliding;
+				cur_sliding_time = max_sliding_time;
 			}
 		}
 		bool W_move{}, H_move{};
@@ -277,14 +290,17 @@ public:
 	}
 
 	void update() {
-		fall();
 		move();
-		walk();
-		if (cur_up_speed > 0) {
+		if (cur_state == Jump) {
 			jump();
 		}
-		else
-			jump_state = false;
+		else {
+			fall();
+			if (cur_state == Sliding)
+				sliding();
+			else
+				walk();
+		}
 		Camera_update();
 	}
 
@@ -309,9 +325,23 @@ public:
 	}
 
 	void jump() {
-		cur_fall_speed = 0.0;
-		Pos.y += cur_up_speed;
-		cur_up_speed -= gravity_accel;
+		if (cur_up_speed > 0) {
+			Pos.y += cur_up_speed;
+			cur_up_speed -= gravity_accel;
+		}
+		else {
+			cur_fall_speed = 0.0;
+			cur_state = Run;//나중에 바닥면과 충돌할때로 기준 바꿔주면 됨.
+		}
+	}
+
+	void sliding() {
+		if (cur_sliding_time > 0) {
+			cur_sliding_time--;
+		}
+		else
+			cur_state = Run;
+
 	}
 
 	float left() {

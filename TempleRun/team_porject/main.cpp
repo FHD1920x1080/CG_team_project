@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "shader.h"
 #include "myRobot.h"
-#include "userInput.h"
 #include <time.h>
 
 using namespace std;
@@ -128,12 +127,12 @@ GLfloat center_vColor[6][3] = {
 GLuint floor_vao, floor_vbo_pos, floor_vbo_color;
 
 GLfloat floor_vPos[6][3] = {
-	-3.0, -0.001, -3.0,
-	-3.0, -0.001, 3.0,
-	3.0, -0.001, -3.0,
-	3.0, -0.001, -3.0,
-	-3.0, -0.001, 3.0,
-	3.0, -0.001, 3.0
+	-5.0, -0.001, -5.0,
+	-5.0, -0.001, 5.0,
+	5.0, -0.001, -5.0,
+	5.0, -0.001, -5.0,
+	-5.0, -0.001, 5.0,
+	5.0, -0.001, 5.0
 };
 
 GLfloat floor_vColor[6][3] = {
@@ -514,13 +513,9 @@ void KeyDown(unsigned char key, int x, int y)
 	case 'd':
 		userInput.D_Down = true;
 		break;
-	case 'Z':
-	case 'z':
-		myRobot.Rot.y--;
-		break;
 	case 'C':
 	case 'c':
-		myRobot.Rot.y++;
+		userInput.C_Down = true;
 		break;
 	case ' ':
 		userInput.Space_Down = true;
@@ -545,6 +540,9 @@ void KeyUp(unsigned char key, int x, int y) {
 	case 'd':
 		userInput.D_Down = false;
 		break;
+	case 'C':
+	case 'c':
+		userInput.C_Down = false;
 	case ' ':
 		userInput.Space_Down = false;
 		break;

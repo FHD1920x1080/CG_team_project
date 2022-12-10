@@ -15,8 +15,7 @@ class MyRobot {
 	int South = 2;
 	int West = 3;
 	int Run = 0;
-	int Jump = 1;
-	int Sliding = 2;
+	int Sliding = 1;
 #define parts_total 6
 #define body box[0]
 #define head box[1]
@@ -42,12 +41,13 @@ public:
 	float max_fall_speed = 0.5;
 	float cur_fall_speed = 0.0;
 	float gravity_accel = 0.01;
-	float walk_speed = 0.25;//걷는속도
+	float run_speed = 0.3;//걷는속도
 	int max_sliding_time = 100;//슬라이딩 지속시간
 	int cur_sliding_time = 0;//남은 지속시간
 
 	int leg_rot_dir = 1;
-	int cur_state = 0;
+	int cur_state = 0;//Run, Sliding
+	bool jump_state = false;
 	Object box[parts_total];
 	GLuint VAO[parts_total];
 	GLuint VBO_position[parts_total];
@@ -105,8 +105,8 @@ public:
 		//glBindVertexArray(VAO[0]);
 		glm::mat4 R_Sliding = glm::mat4(1.0f);
 		if (cur_state == Sliding)
-			R_Sliding = glm::rotate(R_Sliding, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
-		for (int i = 0; i < 2; i++) {
+			R_Sliding = glm::rotate(R_Sliding, glm::radians(-80.0f), glm::vec3(1.0, 0.0, 0.0));
+		for (int i = 0; i < 2; i++) {//바디 헤드
 			glBindVertexArray(VAO[i]);
 			glm::mat4 Init = glm::mat4(1.0f);
 			glm::mat4 R_Dir = glm::mat4(1.0f);
@@ -118,7 +118,14 @@ public:
 			Convert = T_Pos * R_Dir * R_Sliding * Init;
 			box[i].show(modelLocation, Convert);
 		}
-		for (int i = 2; i < 4; i++) {
+		for (int i = 2; i < 4; i++) {//다리
+			glm::mat4 R_Jump = glm::mat4(1.0f);
+			if (jump_state) {
+				if (i == 2)
+					R_Jump = glm::rotate(R_Jump, glm::radians(10.0f), glm::vec3(0.0, 0.0, 1.0));
+				else
+					R_Jump = glm::rotate(R_Jump, glm::radians(-10.0f), glm::vec3(0.0, 0.0, 1.0));
+			}
 			glBindVertexArray(VAO[i]);
 			glm::mat4 tr1 = glm::mat4(1.0f);
 			glm::mat4 R_leg = glm::mat4(1.0f);
@@ -133,10 +140,10 @@ public:
 			Init = glm::translate(Init, glm::vec3(box[i].Pos.x, box[i].Pos.y, box[i].Pos.z));
 			R_Dir = glm::rotate(R_Dir, glm::radians(Rot.y), glm::vec3(0.0, 1.0, 0.0));
 			T_Pos = glm::translate(T_Pos, glm::vec3(Pos.x, Pos.y, Pos.z));
-			Convert = T_Pos * R_Dir * R_Sliding * Init * tr2 * R_leg * tr1;
+			Convert = T_Pos * R_Dir * R_Sliding * Init * tr2 * R_Jump * R_leg * tr1;
 			box[i].show(modelLocation, Convert);
 		}
-		for (int i = 4; i < 6; i++) {
+		for (int i = 4; i < 6; i++) {//팔
 			glBindVertexArray(VAO[i]);
 			glm::mat4 rot1 = glm::mat4(1.0f);
 			glm::mat4 R_Arm = glm::mat4(1.0f);
@@ -204,14 +211,14 @@ public:
 
 	void move() {
 		if (userInput.Space_Down) {
-			if (cur_state == Run) {
+			if (cur_state == Run && jump_state == false) {
 				cur_fall_speed = 0.0;
-				cur_state = Jump;
+				jump_state = true;
 				cur_up_speed = max_up_speed;
 			}
 		}
 		if (userInput.C_Down) {
-			if (cur_state == Run) {
+			if (cur_state == Run && jump_state == false) {
 				cur_state = Sliding;
 				cur_sliding_time = max_sliding_time;
 			}
@@ -223,7 +230,7 @@ public:
 			H_move = true;
 		if (!W_move && !H_move)
 			return;
-		float m_speed = walk_speed;
+		float m_speed = run_speed;
 		if (W_move && H_move)
 			m_speed *= 0.707;
 
@@ -291,24 +298,32 @@ public:
 
 	void update() {
 		move();
-		if (cur_state == Jump) {
+		if (jump_state) {
 			jump();
 		}
 		else {
 			fall();
-			if (cur_state == Sliding)
-				sliding();
-			else
-				walk();
 		}
+		if (cur_state == Sliding)
+			sliding();
+		else //Run
+			run();
 		Camera_update();
 	}
 
-	void walk() {
-		rightLeg.Rot.x += 3 * leg_rot_dir;
-		leftLeg.Rot.x -= 3 * leg_rot_dir;
-		leftArm.Rot.x += 3 * leg_rot_dir;
-		rightArm.Rot.x -= 3 * leg_rot_dir;
+	void run() {
+		if (jump_state) {
+			rightLeg.Rot.x += 0.5 * leg_rot_dir;
+			leftLeg.Rot.x -= 0.5 * leg_rot_dir;
+			leftArm.Rot.x += 0.5 * leg_rot_dir;
+			rightArm.Rot.x -= 0.5 * leg_rot_dir;
+		}
+		else {
+			rightLeg.Rot.x += 3 * leg_rot_dir;
+			leftLeg.Rot.x -= 3 * leg_rot_dir;
+			leftArm.Rot.x += 3 * leg_rot_dir;
+			rightArm.Rot.x -= 3 * leg_rot_dir;
+		}
 		if (rightLeg.Rot.x >= 30 ||rightLeg.Rot.x <= -30)
 			leg_rot_dir *= -1;
 	}
@@ -320,18 +335,18 @@ public:
 			cur_fall_speed = max_fall_speed;
 		if (Pos.y < 0) {//바닥면
 			Pos.y = 0.0;
-			cur_fall_speed = 0.00;
+			cur_fall_speed = 0.0;
 		}
 	}
 
 	void jump() {
-		if (cur_up_speed > 0) {
+		if (cur_up_speed > - max_fall_speed) {
 			Pos.y += cur_up_speed;
 			cur_up_speed -= gravity_accel;
 		}
 		else {
 			cur_fall_speed = 0.0;
-			cur_state = Run;//나중에 바닥면과 충돌할때로 기준 바꿔주면 됨.
+			jump_state = false;
 		}
 	}
 

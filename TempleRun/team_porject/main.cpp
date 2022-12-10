@@ -3,6 +3,7 @@
 #include "shader.h"
 #include "myRobot.h"
 #include "userInput.h"
+#include "road_generator.h"
 #include <time.h>
 
 using namespace std;

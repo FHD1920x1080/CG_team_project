@@ -27,17 +27,20 @@ public:
 	glm::vec3 Rot = glm::vec3(0.0f, 0.0f, 0.0f); //--- 기본 방향에서 얼마나 회전해 있는지
 	glm::vec3 Scale = glm::vec3(1.0f, 1.0f, 1.0f); //--- 신축률
 	//KebordInput userInput;
-	MyCamera Camera[2];//0번이 1인칭
+	MyCamera Camera[2];//0번이 1인칭, 1은 3인칭
+	bool cur_camera_mode = 0;//0이 1인칭, 1이면 3인칭
 	float rot_face_h = 0.0;
 	float rot_face_w = 0.0;
 
 	int face_dir = 0;
 
-	float jump_force = 0.2;
-	float current_jump_force = 0.0;
-	float fall_speed = 0.0;
+	float max_up_speed = 0.5;
+	float cur_up_speed = 0.0;
+	float max_fall_speed = 0.5;
+	float cur_fall_speed = 0.0;
+	float gravity_accel = 0.01;
 
-	float walk_speed = 0.1;
+	float walk_speed = 0.2;
 
 	int leg_rot_dir = 1;
 	bool jump_state = false;
@@ -90,10 +93,10 @@ public:
 		Pos = glm::vec3(0.0f, 0.0f, 0.0f);
 		Rot = glm::vec3(0.0f, 0.0f, 0.0f); //--- 기본 방향
 		Scale = glm::vec3(1.0f, 1.0f, 1.0f); //--- 신축률
-		Camera[0].Pos.x = Pos.x;
-		Camera[0].Pos.z = Pos.z;
-		Camera[0].Pos.y = Pos.y + 3.4;
+		Camera[0].Pos = glm::vec4(Pos.x, Pos.y + 3.4, Pos.z, 1.0f);
 		Camera[0].Dir = glm::vec4(Camera[0].Pos.x, Camera[0].Pos.y, Camera[0].Pos.z + 1, 1.0f); //--- 카메라가 바라보는 방향
+		Camera[1].Pos = glm::vec4(Pos.x, Camera[0].Pos.y, Pos.z - 10, 1.0f);
+		Camera[1].Dir = glm::vec4(Camera[0].Pos.x, Camera[0].Pos.y, Camera[0].Pos.z, 1.0f); //--- 카메라가 바라보는 방향
 	}
 	void show(unsigned int* modelLocation) {
 		//glBindVertexArray(VAO[0]);
@@ -169,12 +172,6 @@ public:
 	}
 	
 	void Camera_update() {
-		float P_dx = Pos.x - Camera[0].Pos.x;
-		float P_dy = (Pos.y+ 3.4) - Camera[0].Pos.y;
-		float P_dz = Pos.z - Camera[0].Pos.z;
-
-		float R_dy = Rot.y - Camera[0].Rot.y;
-
 		Camera[0].Pos.x = Pos.x;
 		Camera[0].Pos.z = Pos.z;
 		Camera[0].Pos.y = Pos.y + 3.4;
@@ -190,13 +187,20 @@ public:
 		//CR = glm::rotate(CR, glm::radians(Camera[0].Rot.y), glm::vec3(0.0, 1.0, 0.0));
 		CT = glm::translate(CT, glm::vec3(Camera[0].Pos.x, Camera[0].Pos.y, Camera[0].Pos.z));
 		Camera[0].Dir = CT * CR_y * CR_x * sample;// *Camera[0].Dir;
+
+		CT = glm::mat4(1.0f);
+		
+		CT = glm::translate(CT, glm::vec3(Pos.x, Pos.y, Pos.z));
+		sample = glm::vec4(0.0, 3.4, - 10, 1.0f);//카메라1 디폴트값
+		Camera[1].Pos = CT * CR_y * CR_x * sample;
+		Camera[1].Dir = Camera[0].Pos; //--- 카메라가 바라보는 방향
 	}
 
 	void move() {
 		if (userInput.Space_Down) {
 			if (jump_state == false) {
 				jump_state = true;
-				current_jump_force = jump_force;
+				cur_up_speed = max_up_speed;
 			}
 		}
 		bool W_move{}, H_move{};
@@ -272,11 +276,11 @@ public:
 		}
 	}
 
-	void update(float gravity_force) {
-		fall(gravity_force);
+	void update() {
+		fall();
 		move();
 		walk();
-		if (current_jump_force > 0) {
+		if (cur_up_speed > 0) {
 			jump();
 		}
 		else
@@ -293,17 +297,17 @@ public:
 			leg_rot_dir *= -1;
 	}
 
-	void fall(float gravity_force) {
-		Pos.y -= fall_speed;
-		fall_speed += 0.005;
-		if (fall_speed > gravity_force)
-			fall_speed = gravity_force;
+	void fall() {
+		Pos.y -= cur_fall_speed;
+		cur_fall_speed += gravity_accel;
+		if (cur_fall_speed > max_fall_speed)
+			cur_fall_speed = max_fall_speed;
 	}
 
 	void jump() {
-		fall_speed = 0.0;
-		Pos.y += current_jump_force;
-		current_jump_force -= 0.005;
+		cur_fall_speed = 0.0;
+		Pos.y += cur_up_speed;
+		cur_up_speed -= gravity_accel;
 	}
 
 	float left() {

@@ -3,7 +3,6 @@
 #include "shader.h"
 #include "myRobot.h"
 #include "userInput.h"
-#include "road_generator.h"
 #include <time.h>
 
 using namespace std;
@@ -22,7 +21,6 @@ void Reshape(int w, int h);
 void KeyDown(unsigned char key, int x, int y);
 void KeyUp(unsigned char key, int x, int y);
 void Mouse(int button, int state, int x, int y);
-void MousePassiveDrag(int x, int y);
 void MouseDrag(int x, int y);
 void InitBuffer();
 void enter();
@@ -35,12 +33,10 @@ struct remote_control {
 	bool depth_test = true;
 	bool polygon_mode = true;
 	bool perspective_projection = true;
-	bool first_person = false;
+	bool myRobot_view = false;
 };
 
 remote_control remocon;
-float fall_speed = 0;
-float gravity_force = 0.2;
 MyCamera myCamera[2];
 
 
@@ -240,9 +236,13 @@ void MyViewport0() {
 	glViewport(0, 0, g_window_w, g_window_h);
 
 	//MyCamera[0].Dir = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);//카메라 보는 방향
-	if (remocon.first_person) {
+	if (remocon.myRobot_view) {
 		projection = glm::perspective(glm::radians(45.0f), -1.0f, 0.1f, 200.0f);// 맨뒤 두개는 카메라로부터 근평면 원평면 거리
-		view = glm::lookAt(glm::vec3(myRobot.Camera[0].Pos), glm::vec3(myRobot.Camera[0].Dir), glm::vec3(myRobot.Camera[0].Up));
+		if (myRobot.cur_camera_mode == 0)
+			view = glm::lookAt(glm::vec3(myRobot.Camera[0].Pos), glm::vec3(myRobot.Camera[0].Dir), glm::vec3(myRobot.Camera[0].Up));
+		else {
+			view = glm::lookAt(glm::vec3(myRobot.Camera[1].Pos), glm::vec3(myRobot.Camera[1].Dir), glm::vec3(myRobot.Camera[1].Up));
+		}
 	}
 	else {
 		if (remocon.perspective_projection)
@@ -314,10 +314,15 @@ void KeyDown(unsigned char key, int x, int y)
 		exit(0);
 		break;
 	case '1':
-		remocon.first_person = true;
+		remocon.myRobot_view = true;
+		myRobot.cur_camera_mode = 0;
+		break;
+	case '2':
+		remocon.myRobot_view = true;
+		myRobot.cur_camera_mode = 1;
 		break;
 	case '3':
-		remocon.first_person = false;
+		remocon.myRobot_view = false;
 		break;
 	case 'I':
 	case 'i':
@@ -563,9 +568,6 @@ void Mouse(int button, int state, int x, int y) {
 	}
 }
 
-void MousePassiveDrag(int x, int y) {
-
-}
 void MouseDrag(int x, int y) {
 	if (userInput.left_down) {
 		userInput.cursor_x2 = x;
@@ -591,11 +593,11 @@ void map_move() {
 void FPS100(int value) {
 	anim_play();
 	
-	myRobot.update(gravity_force);
+	myRobot.update();
 
 	if (myRobot.Pos.y < 0) {//바닥면
 		myRobot.Pos.y = 0.0;
-		myRobot.fall_speed = 0.00;
+		myRobot.cur_fall_speed = 0.00;
 	}
 	glutPostRedisplay();
 	glutTimerFunc(10, FPS100, 1);
@@ -728,7 +730,7 @@ bool check_collision_min_move(MyRobot* unit1, Object* unit2) { // unit1이 움직인
 	}
 	else {
 		unit1->Pos.y -= bottom;
-		myRobot.fall_speed = 0.08;
+		myRobot.cur_fall_speed = 0.08;
 	}
 	return true;
 }
